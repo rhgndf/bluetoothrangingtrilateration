@@ -13,7 +13,7 @@ client.on("connect", function () {
 });
 
 client.on("message", async function (topic, message) {
-  // message is Buffer
+  // Process the message, fetch new data from the db and push to users
   if (topic === "room/update") {
     const data = JSON.parse(message.toString());
     const doc = await getRoomAndMacState(data["room"], data["mac"]);

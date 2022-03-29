@@ -1,0 +1,62 @@
+version: "3"
+
+services:
+  mongo: 
+    image: mongo:5.0.6
+    container_name: mongo-10.42.42.2
+    user: root
+    hostname: bb-mongo
+    tty: true
+    restart: always
+    ports:
+      - 127.0.0.1:27017:27017
+    volumes:
+      - ./apps/mongo:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=bbalpha
+      - MONGO_INITDB_ROOT_PASSWORD=sigmagrindset
+    networks:
+      bb-net:
+        ipv4_address: 10.42.42.2
+
+  mqtt-alpha:
+    image: vernemq/vernemq
+    user: root
+    hostname: bb-mqtt-alpha
+    volumes:
+      - ./apps/vernemq:/var/lib/vernemq
+    container_name: mqtt-alpha-10.42.42.4
+    restart: always
+    ports:
+      - 0.0.0.0:1883:1883
+      - 127.0.0.1:8888:8888
+    environment:
+      - DOCKER_VERNEMQ_ACCEPT_EULA=yes
+      - DOCKER_VERNEMQ_ALLOW_ANONYMOUS=on
+      - DOCKER_VERNEMQ_USER_BBALPHA='password'
+    networks:
+      bb-net:
+        ipv4_address: 10.42.42.4
+
+  fast-api:
+    build: ./src/fastapi
+    container_name: fastapi-10.42.42.8
+    command: /start-reload.sh
+    hostname: bb-fastapi
+    volumes:
+      - ./apps/fastapi:/app
+    ports:
+      - 0.0.0.0:80:8000
+    depends_on:
+      - mongo
+      - mqtt-alpha
+    networks:
+      bb-net:
+        ipv4_address: 10.42.42.8
+  
+networks:
+  bb-net:
+    name: bb-net
+    ipam: 
+      config:
+        - subnet: 10.42.42.0/24

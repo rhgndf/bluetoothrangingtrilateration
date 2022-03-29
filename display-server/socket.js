@@ -12,7 +12,7 @@ export function initSocketIO(server) {
 
   io.on("connection", function (socket) {
     console.log("A user connected");
-
+    // Only allow a session to join one room at one time, leave the previous room if joined
     socket.on("joinRoom", (room) => {
       if (!isString(room)) {
         return;
@@ -31,6 +31,7 @@ export function initSocketIO(server) {
   });
 }
 
+// Emit new data to a room
 export function emitRoom(room, msg) {
   io.to("room-" + room).emit("roomState", msg);
 }
